@@ -16,12 +16,12 @@ import os
 import pdfplumber
 import ocrmypdf
 
+
 def segment_pdf(title, response, download):
     
     if '.pdf' not in title:
         title = title + '.pdf'
     
-    #Initiate an empty dictionary which will be populated
     content = {}
     
     #Open a file as myfile.pdf, weird characters can break the download
@@ -36,29 +36,25 @@ def segment_pdf(title, response, download):
         
         #Convert scanned pdfs
         if text is None: 
-            if __name__ == '__main__':
-                ocrmypdf.ocr('myfile.pdf', 'myfile_converted.pdf', deskew=True, progress_bar = False)
-                document = 'myfile_converted.pdf'
-                os.remove('myfile.pdf')
-            
+           # if __name__ == '__main__':
+           ocrmypdf.ocr('myfile.pdf', 'myfile_converted.pdf', deskew=True, progress_bar = False)
+           with pdfplumber.open('myfile_converted.pdf') as pdf:
+               pages = pdf.pages
+               for count,page in enumerate(pages):
+                   content[count+1] = page.extract_text()
+           os.remove('myfile_converted.pdf')
+                  
+        #Normal pdf
         else:
-            document = 'myfile.pdf'
+            pages = pdf.pages
+            for count,page in enumerate(pages):
+                content[count+1] = page.extract_text()
             
-    #Populate the content dictionary: keys=page numbers, values=text
-    with pdfplumber.open(document) as pdf:
-                
-        pages = pdf.pages
-        for count,page in enumerate(pages):
-            content[count+1] = page.extract_text()
             
     #If download was requested, save the file   
     if download == 1:
-        os.rename(document, title)
+        os.rename('myfile.pdf', title)
     else:
-        os.remove(document)
-        
+        os.remove('myfile.pdf')
         
     return content
-            
-            
-        
